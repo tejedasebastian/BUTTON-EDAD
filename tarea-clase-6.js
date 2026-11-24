@@ -3,141 +3,182 @@ TAREA: Empezar preguntando cuánta gente hay en el grupo familiar.
 Crear tantos inputs+labels como gente haya para completar la edad de cada integrante.
 Al hacer click en "calcular", mostrar en un elemento pre-existente la mayor edad, la menor edad y el promedio del grupo familiar.
 
-Punto bonus: Crear un botón para "empezar de nuevo" que empiece el proceso nuevamente, borrando los inputs ya creados (investigar cómo en MDN).
+Punto bonus: Crear un botón para "empezar de nuevo" que empiece el proceso nuevamente, borrando los inputs ya creados.
 */
 
-document.querySelector('#siguiente').onclick = function(event) {
-    borrarIntegrantesAnteriores()
-    let sinError = validarcantidadIntegrantes() === '';
-    if (sinError){
-        ocultarErrorCantidadIntegrantes()
-        crearIntegrantes()
-        mostrarBotonCalcular()
-        ocultarResultados()
-        ocultarErrorEdadIntegrantes();
-  
-    }else{
-        mostrarErrorCantidadIntegrantes();
+(() => {
+    'use strict';
+
+    const MAX_INTEGRANTES = 50;
+
+    const formCantidad = document.querySelector('#form-cantidad');
+    const cantidadInput = document.querySelector('#cantidad-integrantes');
+    const integrantesContenedor = document.querySelector('#integrantes');
+    const botonCalcular = document.querySelector('#calcular');
+    const botonReiniciar = document.querySelector('#reiniciar');
+    const errorCantidad = document.querySelector('#errorCantidad');
+    const errorEdad = document.querySelector('#errorEdad');
+    const datosCalculados = document.querySelector('#datosCalculados');
+    const promedioSalida = document.querySelector('#promedio-edad');
+    const mayorSalida = document.querySelector('#mayor-edad');
+    const menorSalida = document.querySelector('#menor-edad');
+
+    function mostrar(elemento) {
+        elemento.classList.remove('oculto');
     }
-    event.preventDefault();
-  };
-document.querySelector('#calcular').onclick = function(event){
-    edades()
-    calculos()
-    let sinEdadError =  validarEdadIntegrante() === '';
-    if(sinEdadError){
-        ocultarErrorEdadIntegrantes()
-        editarResultados()
-        mostrarResultados()
-    } else{
-        mostrarErrorEdadIntegrantes()
-        ocultarResultados()
+
+    function ocultar(elemento) {
+        elemento.classList.add('oculto');
     }
-    event.preventDefault();
-}
-document.querySelector('#reiniciar').onclick = function() {
-    resetear();
-};
-function resetear() {
-    borrarIntegrantesAnteriores();
-    ocultarBotonCalculo();
-    ocultarResultados();
-    document.querySelector('#cantidad-integrantes').value = '';
-}
-function crearIntegrantes(){
-    const cantidadIntegrantes = Number(document.querySelector('#cantidad-integrantes').value)
-    const integrante = document.querySelector('#integrantes')
-    for (let  i = 0; i<cantidadIntegrantes;i++){
-        const $integrante = document.createElement('label');
-        $integrante.innerText = "Ingrese la edad del integrante " + (i+1);
-        $integrante.className = 'textoEdad'
-        integrante.appendChild($integrante)
-        const $edadIntegrante = document.createElement('input')
-        $edadIntegrante.type="number"
-        $edadIntegrante.className = 'edadIntegrante'
-        integrante.appendChild($edadIntegrante)
-        const $saltoDeLinea = document.createElement('br');
-        integrante.appendChild($saltoDeLinea);
+
+    function marcarError(input, tieneError) {
+        input.classList.toggle('error', tieneError);
+        input.setAttribute('aria-invalid', String(tieneError));
     }
-}
-function borrarIntegrantesAnteriores(){
-    const integrante = document.querySelector('#integrantes')
-    integrante.innerHTML= ''
-}
-function mostrarBotonCalcular(){
-    const botonCalcular = document.querySelector('#calcular')
-    botonCalcular.className = ''
-}
-function edades() {
-    const edades= document.querySelectorAll('.edadIntegrante')
-    edadesList =[]
-    edades.forEach(function(inputEdad){
-        valor = Number(inputEdad.value)
-        edadesList.push(valor)
-    })
-}
-function calculos(){
-    mayorNumero = obtenerMayorNumero(edadesList)
-    menorNumero = obtenerMenorNumero(edadesList)
-    promedio = obtenerPromedio(edadesList)
-}
-function editarResultados(){
-    let PromedioEdad = document.querySelector('[name="promedioEdad"]');
-    PromedioEdad.textContent = 'El promedio es: ' + promedio
-    let MayorEdad = document.querySelector('[name="mayorEdad"]');
-    MayorEdad.textContent = 'La mayor edad es: ' + mayorNumero
-    let MenorEdad = document.querySelector('[name="menorEdad"]');
-    MenorEdad.textContent = 'La menor edad es: ' + menorNumero
-}
-function mostrarResultados(){
-    const datosCalculados = document.querySelector('#datosCalculados')
-    datosCalculados.className = ''
-}
-function ocultarBotonCalculo(){
-    const botonCalcular = document.querySelector('#calcular')
-    botonCalcular.className = 'oculto'
-}
-function ocultarResultados(){
-    const datosCalculados = document.querySelector('#datosCalculados')
-    datosCalculados.className = 'oculto'
-}
-function validarcantidadIntegrantes(){
-    const cantidadIntegrantes = Number(document.querySelector('#cantidad-integrantes').value)
-    const recuadroCantidadIntegrantes = document.querySelector('#cantidad-integrantes')
-    if(cantidadIntegrantes <= 0){
-        recuadroCantidadIntegrantes.className= 'error'
-        return 'La cantidad de Integrantes no puede ser menor que 0'
-    }else{
-        recuadroCantidadIntegrantes.className= ''
-        return ''
+
+    function crearIntegrantes(cantidad) {
+        const fragmento = document.createDocumentFragment();
+
+        for (let i = 1; i <= cantidad; i += 1) {
+            const fila = document.createElement('div');
+            fila.className = 'integrante';
+
+            const etiqueta = document.createElement('label');
+            etiqueta.className = 'textoEdad';
+            etiqueta.htmlFor = `edad-integrante-${i}`;
+            etiqueta.textContent = `Ingrese la edad del integrante ${i}`;
+
+            const entrada = document.createElement('input');
+            entrada.type = 'number';
+            entrada.className = 'edadIntegrante';
+            entrada.id = `edad-integrante-${i}`;
+            entrada.name = `edad-integrante-${i}`;
+            entrada.min = '1';
+            entrada.step = '1';
+            entrada.inputMode = 'numeric';
+            entrada.autocomplete = 'off';
+            entrada.setAttribute('aria-describedby', 'errorEdad');
+
+            fila.append(etiqueta, entrada);
+            fragmento.append(fila);
+        }
+
+        integrantesContenedor.replaceChildren(fragmento);
     }
-}
-function mostrarErrorCantidadIntegrantes(){
-    const errorCantidadIntegrantes = document.querySelector('#errorCantidad')
-    errorCantidadIntegrantes.className = 'alert alert-danger alertaCantidad'
-}
-function ocultarErrorCantidadIntegrantes(){
-    const errorCantidadIntegrantes = document.querySelector('#errorCantidad')
-    errorCantidadIntegrantes.className = 'oculto'
-}
-function validarEdadIntegrante(){
-    let erroresEdadIntegrantes = 0
-    edadesList.forEach(function(edad){
-        if(edad <= 0){
-            erroresEdadIntegrantes++;
-        } 
-    })
-    if(erroresEdadIntegrantes > 0){
-        return 'La edad de todos los integrantes debe ser mayor que cero'
-    }else{
-        return ''
+
+    function borrarIntegrantes() {
+        integrantesContenedor.replaceChildren();
     }
-}
-function mostrarErrorEdadIntegrantes(){
-    const errorEdadIntegrantes = document.querySelector('#errorEdad')
-    errorEdadIntegrantes.className = 'alert alert-danger alertaEdad'
-}
-function ocultarErrorEdadIntegrantes(){
-    const errorEdadIntegrantes = document.querySelector('#errorEdad')
-    errorEdadIntegrantes.className = 'oculto'
-}
+
+    function obtenerEntradasEdad() {
+        return [...integrantesContenedor.querySelectorAll('.edadIntegrante')];
+    }
+
+    function limpiarResultados() {
+        promedioSalida.textContent = '';
+        mayorSalida.textContent = '';
+        menorSalida.textContent = '';
+        ocultar(datosCalculados);
+    }
+
+    function validarCantidad() {
+        const valor = cantidadInput.value.trim();
+        const cantidad = Number(valor);
+        const valida = valor !== ''
+            && Number.isInteger(cantidad)
+            && cantidad > 0
+            && cantidad <= MAX_INTEGRANTES;
+
+        marcarError(cantidadInput, !valida);
+        return { valida, cantidad };
+    }
+
+    function validarEdades() {
+        const edades = [];
+        const entradasInvalidas = [];
+        const entradas = obtenerEntradasEdad();
+
+        entradas.forEach((entrada) => {
+            const valor = entrada.value.trim();
+            const edad = Number(valor);
+            const valida = valor !== '' && Number.isFinite(edad) && edad > 0;
+
+            marcarError(entrada, !valida);
+
+            if (valida) {
+                edades.push(edad);
+            } else {
+                entradasInvalidas.push(entrada);
+            }
+        });
+
+        return {
+            edades,
+            entradasInvalidas,
+            valida: entradas.length > 0 && entradasInvalidas.length === 0,
+        };
+    }
+
+    function actualizarResultados(edades) {
+        promedioSalida.textContent = obtenerPromedio(edades);
+        mayorSalida.textContent = String(obtenerMayorNumero(edades));
+        menorSalida.textContent = String(obtenerMenorNumero(edades));
+    }
+
+    function reiniciar() {
+        formCantidad.reset();
+        borrarIntegrantes();
+        limpiarResultados();
+        ocultar(botonCalcular);
+        ocultar(errorCantidad);
+        ocultar(errorEdad);
+        marcarError(cantidadInput, false);
+        cantidadInput.focus();
+    }
+
+    formCantidad.addEventListener('submit', (event) => {
+        event.preventDefault();
+
+        const { valida, cantidad } = validarCantidad();
+
+        borrarIntegrantes();
+        limpiarResultados();
+        ocultar(errorEdad);
+
+        if (!valida) {
+            ocultar(botonCalcular);
+            mostrar(errorCantidad);
+            cantidadInput.focus();
+            return;
+        }
+
+        ocultar(errorCantidad);
+        crearIntegrantes(cantidad);
+        mostrar(botonCalcular);
+
+        const primeraEntrada = obtenerEntradasEdad()[0];
+        if (primeraEntrada) {
+            primeraEntrada.focus();
+        }
+    });
+
+    botonCalcular.addEventListener('click', () => {
+        const { edades, entradasInvalidas, valida } = validarEdades();
+
+        if (!valida) {
+            limpiarResultados();
+            mostrar(errorEdad);
+
+            if (entradasInvalidas.length > 0) {
+                entradasInvalidas[0].focus();
+            }
+            return;
+        }
+
+        ocultar(errorEdad);
+        actualizarResultados(edades);
+        mostrar(datosCalculados);
+    });
+
+    botonReiniciar.addEventListener('click', reiniciar);
+})();
