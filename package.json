@@ -1,17 +1,32 @@
 {
   "name": "button-edad",
-  "version": "1.0.0",
-  "description": "https://kuki236.github.io/BUTTON-EDAD/",
-  "main": "calculos-mio.js",
-  "scripts": {
-    "empezar": "http-server",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "cypress-dev": "cypress open",
-    "cypress-run": "cypress run"
+  "version": "2.0.0",
+  "private": true,
+  "description": "Calculadora de edades familiar: promedio, mayor y menor edad.",
+  "homepage": "https://tejedasebastian.github.io/BUTTON-EDAD/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tejedasebastian/BUTTON-EDAD.git"
   },
-  "author": "",
-  "license": "ISC",
+  "scripts": {
+    "start": "http-server . -p 4181 -c-1",
+    "empezar": "http-server . -p 4181 -c-1",
+    "test": "playwright test",
+    "test:headed": "playwright test --headed"
+  },
+  "keywords": [
+    "calculadora",
+    "edades",
+    "promedio",
+    "html",
+    "css",
+    "javascript",
+    "playwright"
+  ],
+  "author": "Sebastián Tejeda",
+  "license": "MIT",
   "devDependencies": {
-    "cypress": "^13.6.6"
+    "@playwright/test": "^1.65.1",
+    "http-server": "^14.1.1"
   }
 }

@@ -1,1 +1,9 @@
 node_modules/
+playwright-report/
+test-results/
+artifacts/
+blob-report/
+playwright/.cache/
+.env
+.DS_Store
+Thumbs.db
